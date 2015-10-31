@@ -1,2 +1,3 @@
-# R_programming_cheetsheets
-Cheetsheets to quickly document common R tasks
+# R Programming cheet sheets
+
+I'll collect my task-oriented R programming cheet sheets here
