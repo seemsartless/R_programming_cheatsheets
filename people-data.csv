@@ -1,12 +1,12 @@
 Person,Province,Dog person,Cat person,Followers,Points
 Alice,ON,Yes,No,771,"8,892"
-Bob,ON,Yes,Yes,251,"113,352"
-Chao,QC,No,No,558,"12,223"
-David,ON,Yes,Yes,,221
-Eric,ON,No,No,1589,"5,549"
-Fran,NB,No,Yes,,
-Geoff,NS,Yes,No,500,"33,589"
-Hu,AB,No,Yes,627,"5,579"
-Ian,AB,No,No,479,"1,328,359"
+Bob,ON,Yes,Yes,251,"3,352"
+Chao,QC,No,No,558,"2,223"
+David,ON,Yes,Yes,431,221
+Eric,ON,No,No,589,"5549"
+Fran,NB,No,Yes,121,0
+Geoff,NS,Yes,No,500,"3589"
+Hu,AB,No,Yes,627,"5579"
+Ian,AB,No,No,479,"8,359"
 Janet,QC,No,Yes,58,0
-Heather,CA,Yes,Yes,691,"558,982"
+Heather,CA,Yes,Yes,691,"1,000"

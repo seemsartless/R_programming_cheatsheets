@@ -3,34 +3,76 @@ title: "R cheatsheet - data tables"
 output: html_document
 author: David Sky - david.s.toronto@gmail.com
 ---
-Lets load some sample data into a data table to work with:
+
+# Load some sample data using read.table()
+Lets load some sample data into a data table to work with using `read.table()` [^1]. 
 
 ```{r}
 require("data.table")
-sampleDT <- read.table("people-data.csv", header = T, sep=",", stringsAsFactors = F)
+sampleDT <- read.table("people-data.csv", # The people-data.csv file from the current working directory 
+                       header = T, # Our CSV file has column header information in the first line
+                       sep=",", # Our CSV file uses a comma to separate each column
+                       stringsAsFactors = F, # false so that each column is loaded as a set of strings
+                       colClasses=c("Followers"="numeric", "Dog.person"="factor")
+)
+head(sampleDT)
 ```
-(Documentation for read.table() at https://stat.ethz.ch/R-manual/R-devel/library/utils/html/read.table.html )
 
 ## Understanding the data we loaded
 
-Quick commands to better understand the data table:
+Quick commands to better understand the data table. Because we included the `header = T` attribute in the 
+`read.table()` call, we can use the column names directly:
 
 Operation |R command|Result
 ----------|---------|------
-Count the number of rows | nrow(sampleDT) | `r nrow(sampleDT)`
-Count the number of columns |ncol(sampleDT) | `r ncol(sampleDT)`
+Count the number of rows | `nrow( sampleDT )` | `r nrow(sampleDT)`
+Count the number of columns | `ncol( sampleDT )` | `r ncol(sampleDT)`
+Find the column names | `names( sampleDT )` | `r names(sampleDT)`
+Factors in the Dog person column | `levels( sampleDT$Dog.person )` | `r levels(sampleDT$Dog.person)`
 
 
-- use nrow(sampleDT) to determine the number of rows: `r nrow(sampleDT)`
-- use ncol(sampleDT) to determine the number of columns: `r ncol(sampleDT)`
-
-Display the column names: 
+Use the built in R function `summary()` on a row to get more details:
 ```{r}
-names(sampleDT)
+summary(sampleDT$Followers)
 ```
 
-Because we included the header = T attribute in the read.table() call, we can use the column names directly.
+Or how about a quick graph of the `Followers` column to get a sense of the same data:
+```{r}
+    par(las=2) # Want the titles to be horizontal
+    barplot( sampleDT$Followers, horiz=TRUE, names.arg = sampleDT$Person)
+```
+
+The `Province` column has a limited number of values - here's a sorted list of the unique values:
+```{r}
+provinceUniqueSorted <- sort(unique(sampleDT$Province))
+cat(provinceUniqueSorted)
+```
+### Clean up the values in a column
+We loaded the `Points` column as a set of characters, with commas as thousands separators and not all people have a value. We'll change the column in-place so that we can continue working with it as number. (I realize we could/should have loaded this column as numeric to start with, like we did with the `Followers` column and just run `sum(sampleDR$Followers, na.rm = TRUE)` = `r sum(sampleDT$Followers, na.rm = TRUE)`.)
+
+Before: `sampleDT$Points` is: `r sampleDT$Points`
+
+We'll run one command to update the column... working from the inside, out, we'll:
+
+1. remove the commas from the string with `gsub()`
+1. convert the string to a number with `as.numeric()`
+  
+```{r}
+
+sampleDT[,6] <- as.numeric(gsub(",", "", sampleDT[,6]), ignore.na=T)
+
+```
+
+After: once updated, the column `sampleDT$Points` is: `r sampleDT$Points`
+
+### Find the sum of the values in a column
+We can now find the sum with:
+
+* `sum( sampleDT$Points )`: `r sum(sampleDT$Points)`
+* `sum( sampleDT$Followers )`: `r sum(sampleDT$Followers, na.rm=T)`
 
 ### References:
 - More details on using R Markdown: http://rmarkdown.rstudio.com
 - An R Markdown cheat sheet: http://shiny.rstudio.com/articles/rm-cheatsheet.html
+
+[^1]: Documentation for read.table() at https://stat.ethz.ch/R-manual/R-devel/library/utils/html/read.table.html
