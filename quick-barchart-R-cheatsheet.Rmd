@@ -1,0 +1,90 @@
+---
+title: "Quick Bar Chart in R - historic photo exploration"
+author: "David Sky"
+output: 
+    html_document:
+        toc: true
+        toc_depth: 3
+---
+# Introduction
+I've geotagged a wide range of historic Toronto photos, but I have no idea of the breakdown of the dates across the decades. I thought a quick bar chart would give me insight into the data I have. (I suspect the 1950's will have the most photographs - lots of construction going on in Toronto, including the new subway, and photography was getting easier all the time.)
+
+# Extract data from the MySQL database
+I ran a simple MySQL SELECT statment to generate a CSV file with the data I'll need:
+
+    SELECT code, counter, dateyear, datemonth, title, location FROM histPhotos
+        WHERE picType = "historic" AND city = "Toronto"
+
+
+# Load data using the read.table() R function
+Once we have the CSV data file from the MySQL SELECT statement, we can load it into a R data table  using `read.table()` and take a look at the first few rows with `head()` .
+```{r}
+photoDetailsDT <- read.table("historic-photo-details.csv", 
+                       header = T, # Our CSV file has column header information in the first line
+                       sep=";", # Our CSV file uses a comma to separate each column
+                       # col.names = c("dateTime", "neighbourhood") # Reset column names                       
+)
+head(photoDetailsDT)
+```
+
+# Quick look at the data we have loaded
+The first column (`code`) corresponds to the original source archive. We can easily list and count the archives with `levels(photoDetailsDT$code)` and `length(levels(photoDetailsDT$code))` which shows us the `r length(levels(photoDetailsDT$code))` sources as: `r levels(photoDetailsDT$code)`
+
+## Add a new column with decade information
+But we want to consider the decade for each photo, so we'll add a new column to the data table and use `gsub()` to replace the last digit of the year with a 0 in all cases.
+
+```{r}
+photoDetailsDT$decade <- gsub('.{1}$', '0', photoDetailsDT$dateyear)
+```
+# Prepare the data we need for the graph
+
+To create a bar graph we need two values - the set of decades, and the count for each of those decades.
+
+## Generate decade list
+First we'll generate the unique list of decades and assign it to the variable `decadeList`:
+
+```{r}
+decadeList <- sort(unique(photoDetailsDT$decade))
+cat("List of decades: ", decadeList, "\n")
+```
+
+## Generate counts for each decade
+Then we'll use the `table()` and `unlist()` functions to generate a list of the counts for each and store that in a `decadeCount` variable:
+
+```{r}
+decadeCount <- table(unlist(photoDetailsDT$decade))
+cat("Decade count:" , decadeCount, "\n")
+```
+
+# Create the graph
+We have the two sets of data, so lets create our bar chart!
+```{r}
+par(las=2) # Want the titles to be horizontal
+barplot( decadeCount, 
+         horiz=TRUE, 
+         names.arg=decadeList,
+         main="Historic photo count by decade",
+         xlab="number of photos"
+         )
+```
+
+# Verifying the results
+I'm suprised that the most popular decade was 1910 - a good reminder that we should verify these result. It is a simple process to run some SQL COUNT statements against the original data for a few different decades and compare that to our R calculations:
+
+    SELECT COUNT(dateyear) FROM histPhotos 
+        WHERE dateyear LIKE '191%' 
+            AND picType = "historic"
+            AND city = "Toronto"
+    
+    
+This returns a count of 550, and we'll repeat this with a few more decades and create a table to verify that the SQL count and R count are the same!
+
+Decade | SQL LIKE string | SQL count | R count from `decadeCount[]`
+-------|-----------------|-----------|--------
+1860 | `LIKE '186%'` | 27 | `r decadeCount[6]`
+1910 | `LIKE '191%'` | 550 | `r decadeCount[11]`
+1970 | `LIKE '197%'` | 57 | `r decadeCount[17]`
+
+# Other R cheatsheets
+
+I hope this walkthrough of my data exploration and graph is helpful. Here's a [link to the other R documents I've put together online](index.html).

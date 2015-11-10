@@ -1,10 +1,15 @@
 ---
 title: "R cheatsheet - data tables"
-output: html_document
+output: 
+    html_document:
+        toc: true
+        toc_depth: 3
 author: David Sky - david.s.toronto@gmail.com
 ---
+# Introduction
+As I work more and more with R I find myself repeating the same tasks, and thought I would put together a collection of R examples to refer back to. Its also a great excuse to get more hands-on experience mixing descriptive text and R in the same document using R Markdown. You can also find the source for these pages on my [GitHub repository](https://github.com/seemsartless/R_programming_cheatsheets).
 
-# Load some sample data using read.table()
+# Load sample data using the read.table() R function
 Lets load some sample data into a data table to work with using `read.table()` [^1]. 
 
 ```{r}
@@ -18,10 +23,13 @@ sampleDT <- read.table("people-data.csv", # The people-data.csv file from the cu
 head(sampleDT)
 ```
 
-## Understanding the data we loaded
+# Explore the data we loaded
 
-Quick commands to better understand the data table. Because we included the `header = T` attribute in the 
-`read.table()` call, we can use the column names directly:
+R provides a lot of ways to quickly get a sense of data.
+
+## Quick R commands to understand a data table
+
+Because we included the `header = T` attribute in the `read.table()` call we can use the column names directly in these sorts of commands:
 
 Operation |R command|Result
 ----------|---------|------
@@ -29,6 +37,7 @@ Count the number of rows | `nrow( sampleDT )` | `r nrow(sampleDT)`
 Count the number of columns | `ncol( sampleDT )` | `r ncol(sampleDT)`
 Find the column names | `names( sampleDT )` | `r names(sampleDT)`
 Factors in the Dog person column | `levels( sampleDT$Dog.person )` | `r levels(sampleDT$Dog.person)`
+Count the number of factors | `length(levels( sampleDT$Dog.person ))` | `r length(levels( sampleDT$Dog.person ))`
 
 
 Use the built in R function `summary()` on a row to get more details:
@@ -36,18 +45,22 @@ Use the built in R function `summary()` on a row to get more details:
 summary(sampleDT$Followers)
 ```
 
+## Display a quick graph
 Or how about a quick graph of the `Followers` column to get a sense of the same data:
 ```{r}
     par(las=2) # Want the titles to be horizontal
     barplot( sampleDT$Followers, horiz=TRUE, names.arg = sampleDT$Person)
 ```
 
+I have a separate [cheatsheet on creating a bar chart from MySQL data](quick-barchart-R-cheatsheet.html).
+
+## Find unique values in a column
 The `Province` column has a limited number of values - here's a sorted list of the unique values:
 ```{r}
 provinceUniqueSorted <- sort(unique(sampleDT$Province))
 cat(provinceUniqueSorted)
 ```
-### Clean up the values in a column
+# Clean up the values in a column
 We loaded the `Points` column as a set of characters, with commas as thousands separators and not all people have a value. We'll change the column in-place so that we can continue working with it as number. (I realize we could/should have loaded this column as numeric to start with, like we did with the `Followers` column and just run `sum(sampleDR$Followers, na.rm = TRUE)` = `r sum(sampleDT$Followers, na.rm = TRUE)`.)
 
 Before: `sampleDT$Points` is: `r sampleDT$Points`
@@ -71,7 +84,7 @@ We can now find the sum with:
 * `sum( sampleDT$Points )`: `r sum(sampleDT$Points)`
 * `sum( sampleDT$Followers )`: `r sum(sampleDT$Followers, na.rm=T)`
 
-### References:
+# References
 - More details on using R Markdown: http://rmarkdown.rstudio.com
 - An R Markdown cheat sheet: http://shiny.rstudio.com/articles/rm-cheatsheet.html
 
