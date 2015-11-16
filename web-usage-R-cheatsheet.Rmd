@@ -1,0 +1,80 @@
+---
+title: "Web usage analysis in R"
+author: "David Sky"
+output: 
+    html_document:
+        toc: true
+        toc_depth: 3
+        includes:
+            after_body: include/web-usage-common-hits.html
+---
+
+# Introduction
+R is great for loading structured data and creating graphs. I have a website with details on some hiking trails in Southern Ontario [^1] - I assume this site gets the most hits in the summer, but lets load up the data and take a look. (I authored this [and my other R cheat sheets](index.html) directly in R Markdown[^2] which automatically displays the R code, runs the code, then includes the output in the HTML.)
+
+# Extract data from the MySQL database
+My web usage log stores each hit in a separate line, but I'm looking to summarize things by day, so we'll use a `GROUP BY` clause in the SQL SELECT statement to summarize the data and then save it as a CSV formatted file.
+
+    SELECT date_of_view, count(date_of_view) AS dayCount  FROM `mapviews` WHERE site = "bruce_trail" GROUP BY date_of_view
+
+# Load the data into an R data.table
+
+```{r}
+library(ggplot2)    # Use the ggplot library to make our graph
+library(scales)     # We'll want to set the X axis scale, so will need this library
+
+pagehitsDT <- read.table("brucetrail-mapviews.csv", 
+    header = T,     # Our CSV file has column header information in the first line
+    sep = ",",      # Our CSV file uses a comma to separate each column
+    colClasses = c("Date", "integer"),
+    col.names = c("dateView", "viewCount"),
+    # We're interested in just one year, so well skip ahead through the data for the 1st 2007 line
+    skip=grep("2007-01-01", readLines("brucetrail-mapviews.csv")), 
+    nrows=362       # I set this to 365 to start with, but then realized there were some dates with no data
+)
+summary(pagehitsDT)
+head(pagehitsDT)
+```
+Using `summary()` and `head()` is a quick way to make sure the data was loaded in a reasonable way. In some cases `str()` is good, too.
+
+# Display the graph
+In this case the data loaded from the CSV is good to work with as is, so we're all set to create the graph. After creating the graph the first time I decided to label two points in time: people were most interested around Oct 3rd, with a second local maximum around June 10th:
+
+```{r echo=FALSE}
+qplot(pagehitsDT$dateView, pagehitsDT$viewCount, geom='smooth', method='loess', span=0.5, main="Web page hits in 2007", xlab="Month", ylab="Page hits") +  scale_x_date(breaks = date_breaks("months"), labels = date_format("%b")) + geom_vline(xintercept = as.numeric(as.Date("2007-06-10"))) + geom_vline(xintercept = as.numeric(as.Date("2007-10-03"))) + geom_text(aes(as.Date("2007-06-10"), 6, label="June 10th"), size=3, angle=90, vjust=-1) + geom_text(aes(as.Date("2007-10-03"), 12, label="Oct. 3rd"), angle=90, vjust=-1, size=3)
+```
+
+## Breakdown of the qplot() call to display the graph
+I hid the full R call above, as it is a single line that needs some unpacking to make sense of. Notice there are plus signs between each of the functions:
+
+### Part 1. Main qplot() call
+We're going to create an x-y plot of the `dateView` vs `viewCount` variables, but instead of showing all the points, we'll apply a loess smoothing function (with `method="loess"`) and show a confidence band (with `span=0.5`) and set the main, X-axis, and Y-axis labels:
+```{r, eval=FALSE}
+    qplot(pagehitsDT$dateView, pagehitsDT$viewCount, 
+        geom='smooth', method='loess', span=0.5, 
+        main="Web page hits in 2007", xlab="Month", ylab="Page hits") +
+```
+
+### Part 2. Change the default X-axis scale
+By default the x-axis scale labels were Jan 2007... Apr 2007... with the 2007 redundant and taking up space. Instead I used a `scale_x_date()` call to change the scale, using the `date_format("%b")` - three letter English shortform - to force a label on each month. I had to load the `scales` library to get this to work (with `library(scales)` at the top of the R script).
+```{r, eval=FALSE}
+    scale_x_date(breaks = date_breaks("months"), labels = date_format("%b")) + 
+```    
+### Part 3. Highlight two maximums in the graph
+I added these last two lines after I looked at the graph. You can see there are two maximums, so I used `geom_vline()` and `geom_text()` to draw and label vertical lines at those points:
+```{r, eval=FALSE}
+    geom_vline(xintercept = as.numeric(as.Date("2007-06-10"))) + 
+    geom_vline(xintercept = as.numeric(as.Date("2007-10-03"))) + 
+    geom_text(aes(as.Date("2007-06-10"), 6, label="June 10th"), size=3, angle=90, vjust=-1) + 
+    geom_text(aes(as.Date("2007-10-03"), 12, label="Oct. 3rd"), size=3, angle=90, vjust=-1)
+```
+
+# Next steps
+
+This summary isn't quite what I expected - I thought people on vacation would be looking for information on hikes, but maybe it is too warm in the middle of the summer? Too many mosquitoes? Maybe I'll see what data I can find online and see how it fits with this graph...
+
+# References
+
+[^1]: Here's a link to my [Bruce Trail hikes in Southern Ontario website](http://brucetrail.wholemap.com)
+[^2]: More information on the version of `R Markdown` I'm using is available [on theRStudio website](http://rmarkdown.rstudio.com/). They describe it as "an authoring format that enables easy creation of dynamic documents, presentations, and reports from R. It combines the core syntax of markdown (an easy-to-write plain text format) with embedded R code chunks that are run so their output can be included in the final document." Here's a useful [R Markdown cheat sheet](http://shiny.rstudio.com/articles/rm-cheatsheet.html) that I've used often.
+    

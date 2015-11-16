@@ -5,9 +5,12 @@ output:
     html_document:
         toc: true
         toc_depth: 3
+        includes:
+            after_body: include/quick-barchart-common-hits.html
+
 ---
 # Introduction
-I've geotagged a wide range of historic Toronto photos, but I have no idea of the breakdown of the dates across the decades. I thought a quick bar chart would give me insight into the data I have. (I suspect the 1950's will have the most photographs - lots of construction going on in Toronto, including the new subway, and photography was getting easier all the time.)
+I've geotagged a wide range of historic Toronto photos, but I have no idea of the breakdown of the dates across the decades. I thought a quick bar chart would give me insight into the data I have. I suspect the 1950's will have the most photographs - lots of construction going on in Toronto, including the new subway, and photography was getting easier all the time. (I authored this [and my other R cheat sheets](index.html) directly in R Markdown[^1] which automatically displays the R code, runs the code, then includes the output in the HTML.)
 
 # Extract data from the MySQL database
 I ran a simple MySQL SELECT statment to generate a CSV file with the data I'll need:
@@ -85,6 +88,6 @@ Decade | SQL LIKE string | SQL count | R count from `decadeCount[]`
 1910 | `LIKE '191%'` | 550 | `r decadeCount[11]`
 1970 | `LIKE '197%'` | 57 | `r decadeCount[17]`
 
-# Other R cheatsheets
+# References
 
-I hope this walkthrough of my data exploration and graph is helpful. Here's a [link to the other R documents I've put together online](index.html).
+[^1]: More information on the version of `R Markdown` I'm using is available [on theRStudio website](http://rmarkdown.rstudio.com/). They describe it as "an authoring format that enables easy creation of dynamic documents, presentations, and reports from R. It combines the core syntax of markdown (an easy-to-write plain text format) with embedded R code chunks that are run so their output can be included in the final document." Here's a useful [R Markdown cheat sheet](http://shiny.rstudio.com/articles/rm-cheatsheet.html) that I've used often.
